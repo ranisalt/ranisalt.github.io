@@ -21,14 +21,7 @@
         "Streamlined CI/CD pipelines (Azure DevOps, GitHub Actions), reducing friction across teams.",
         "Standardized processes to reduce maintenance overhead and improve focus on product delivery."
       ],
-      "stack": [
-        "React",
-        "Next.js",
-        "TypeScript",
-        "Azure DevOps",
-        "GitHub Actions",
-        "Developer Experience"
-      ]
+      "stack": ["React", "Next.js", "TypeScript", "Azure DevOps", "GitHub Actions"]
     },
     {
       "company": "Klarna",
@@ -92,10 +85,11 @@
     }
   ],
   "skills": {
-    "Languages": ["TypeScript", "JavaScript", "C++", "Python", "Shell", "LaTeX"],
-    "Frameworks": ["React", "Next.js", "React Native", "Node.js", "Express", "FastAPI"],
-    "Tooling": ["Git", "Docker", "ESLint", "Webpack", "Vite"],
-    "Platforms": ["Linux", "CI/CD", "REST APIs", "Developer Experience"]
+    "Languages": ["TypeScript", "JavaScript", "C++", "Python"],
+    "Frontend & mobile": ["React (Next.js)", "Svelte (SvelteKit)", "React Native"],
+    "Backend": ["Express", "FastAPI", "REST", "GraphQL"],
+    "Tooling & build systems": ["Vite", "Webpack", "CMake", "Yarn", "pnpm"],
+    "DevOps & infrastructure": ["Docker", "GitHub Actions (CI/CD)", "Linux (systemd)", "Flatpak"]
   },
   "languages": [
     { "name": "Portuguese", "level": "Native" },
