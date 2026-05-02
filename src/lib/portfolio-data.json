@@ -1,0 +1,106 @@
+{
+  "profile": {
+    "name": "Ranieri Althoff",
+    "role": "Senior Frontend Engineer",
+    "tagline": "Software Engineer with 8+ years of experience in scalable web development, secure systems, and cross-functional collaboration. Passionate about impactful software and open source.",
+    "location": "Stockholm, Sweden",
+    "email": "hi@rsa.sh",
+    "github": "ranisalt",
+    "linkedin": "ranisalt"
+  },
+  "about": "I'm a software engineer based in Stockholm, currently building internationalized experiences at Volvo Cars. I care about thoughtful interfaces, healthy developer experience, and software that respects the people using it. My background spans front-end product work, low-level systems, and applied cryptography.",
+  "experiences": [
+    {
+      "company": "Volvo Cars",
+      "role": "Senior Frontend Engineer",
+      "period": "2022 —",
+      "location": "Stockholm, Sweden",
+      "bullets": [
+        "Developed and maintained an internationalized B2B portal with dynamic content per market.",
+        "Built internal tooling, automated dependency management and patched vulnerabilities.",
+        "Streamlined CI/CD pipelines (Azure DevOps, GitHub Actions), reducing friction across teams.",
+        "Standardized processes to reduce maintenance overhead and improve focus on product delivery."
+      ],
+      "stack": [
+        "React",
+        "Next.js",
+        "TypeScript",
+        "Azure DevOps",
+        "GitHub Actions",
+        "Developer Experience"
+      ]
+    },
+    {
+      "company": "Klarna",
+      "role": "Software Engineer",
+      "period": "2021 — 2022",
+      "location": "Stockholm, Sweden",
+      "bullets": [
+        "Contributed to new product features within Klarna's app ecosystem.",
+        "Built scalable services with responsive front ends using React Native and Node.js.",
+        "Implemented CI/CD pipelines and automated testing for high quality and reliability."
+      ],
+      "stack": ["React Native", "Node.js", "TypeScript"]
+    },
+    {
+      "company": "Doctype",
+      "role": "Software Engineer",
+      "period": "2017 — 2021",
+      "location": "Norrköping, Sweden",
+      "bullets": [
+        "Led product development from concept to production for first-line clients.",
+        "Developed modular front-end applications and high-performance back-end systems.",
+        "Designed and optimized algorithms tailored to client-specific needs.",
+        "Implemented web scraping solutions to collect data from sources without official APIs."
+      ],
+      "stack": ["React", "Next.js", "Redux", "TypeScript", "Go", "Tailwind"]
+    },
+    {
+      "company": "Khomp",
+      "role": "Software Engineer (Internship)",
+      "period": "2015 — 2016",
+      "location": "Florianópolis, Brazil",
+      "bullets": [
+        "Worked on real-time software for embedded systems in telecom hardware.",
+        "Contributed to task scheduling, resource management, and hardware integration."
+      ],
+      "stack": ["C++", "JavaScript", "Cryptography"]
+    },
+    {
+      "company": "Computer Security Laboratory",
+      "role": "Programmer (Scholarship)",
+      "period": "2015",
+      "location": "Florianópolis, Brazil",
+      "bullets": [
+        "Developed security libraries using hashing, encryption, and public key infrastructure.",
+        "Supported research in secure communication and digital certification."
+      ],
+      "stack": ["C++", "Cryptography"]
+    }
+  ],
+  "education": [
+    {
+      "school": "Federal University of Santa Catarina",
+      "degree": "B.Sc. Computer Science",
+      "period": "2013 — 2018",
+      "detail": "Thesis: implementation of a secure remote voting system."
+    },
+    {
+      "school": "Federal Institute of Santa Catarina",
+      "degree": "Technician in Information Technology",
+      "period": "2010 — 2012"
+    }
+  ],
+  "skills": {
+    "Languages": ["TypeScript", "JavaScript", "C++", "Python", "Shell", "LaTeX"],
+    "Frameworks": ["React", "Next.js", "React Native", "Node.js", "Express", "FastAPI"],
+    "Tooling": ["Git", "Docker", "ESLint", "Webpack", "Vite"],
+    "Platforms": ["Linux", "CI/CD", "REST APIs", "Developer Experience"]
+  },
+  "languages": [
+    { "name": "Portuguese", "level": "Native" },
+    { "name": "English", "level": "Fluent" },
+    { "name": "Spanish", "level": "Elementary" }
+  ],
+  "githubRepos": ["ranisalt/node-argon2"]
+}
