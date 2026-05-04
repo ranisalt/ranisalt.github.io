@@ -98,7 +98,10 @@
   ],
   "githubRepos": [
     "ranisalt/node-argon2",
+    "ranisalt/histar",
+    "ranisalt/node-https-loader",
     "nodejs/node",
-    "parcel-bundler/parcel"
+    "parcel-bundler/parcel",
+    "otland/forgottenserver"
   ]
 }
