@@ -98,8 +98,7 @@
   ],
   "githubRepos": [
     "ranisalt/node-argon2",
-    "ranisalt/node-argon2-cli",
-    "ranisalt/koa-from-scratch",
-    "ranisalt/react-use-credential-management"
+    "nodejs/node",
+    "parcel-bundler/parcel"
   ]
 }
