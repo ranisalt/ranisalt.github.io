@@ -96,5 +96,10 @@
     { "name": "English", "level": "Fluent" },
     { "name": "Spanish", "level": "Elementary" }
   ],
-  "githubRepos": ["ranisalt/node-argon2"]
+  "githubRepos": [
+    "ranisalt/node-argon2",
+    "ranisalt/node-argon2-cli",
+    "ranisalt/koa-from-scratch",
+    "ranisalt/react-use-credential-management"
+  ]
 }
