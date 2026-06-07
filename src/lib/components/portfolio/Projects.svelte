@@ -8,7 +8,9 @@
   <div class="reveal flex items-baseline justify-between gap-6">
     <SectionLabel>Projects</SectionLabel>
 
-    <p class="text-xs text-muted-foreground">Stars, forks and language pulled from GitHub</p>
+    <p class="text-xs text-muted-foreground tracking-wider">
+      Stars, forks and language pulled from GitHub
+    </p>
   </div>
 
   <div class="divide-y">

@@ -1,0 +1,66 @@
+---
+title: Migrating existing code to a new password hashing algorithm
+published: 2020-06-04
+---
+
+I maintain the [node-argon2](https://www.npmjs.com/package/argon2) and oftentimes people are afraid to use it due to having a codebase using another password hashing algorithm (e.g. PBKDF2, bcrypt) and how would it be to migrate to Argon2.
+
+Even though the procedure below uses **bcrypt** and **Argon2** as examples, it works to migrate between any two (or more) password hashing algorithms, as long as you can determine what algorithm a given hash uses. In this case, bcrypt hashes start with `$2`, and Argon2 hashes start with `$argon2`.
+
+The idea behind it would also works for any language, not only Javascript, once you grasp it.
+
+---
+
+If your database uses another hash function for passwords, you can gradually migrate to Argon2 to improve security. To do that, you need to rehash your user's password as they log in.
+
+Suppose we want want to migrate from [bcrypt](https://www.npmjs.com/package/bcrypt), with the following code:
+
+```js
+import bcrypt from 'bcrypt'
+
+router.post('/login', async ctx => {
+  const { email, password } = ctx.request.body
+  const user = await User.findOne({ email })
+
+  const match = await bcrypt.compare(password, user.password)
+  if (!match) {
+    throw new Error('Unauthorized')
+  }
+  // user is authorized
+  ...
+})
+```
+
+You need to branch before checking the user password and verify what function the current password uses. Then, proceed to update if the password is still using the previous function.
+
+```js
+import argon2 from 'argon2'
+import bcrypt from 'bcrypt'
+
+router.post('/login', async ctx => {
+  const { email, password } = ctx.request.body
+  const user = await User.findOne({ email })
+
+  // bcrypt hashes start with $2a$ or $2b$
+  // argon2 hashes start with $argon2i$, $argon2d$ or $argon2id$
+  if (user.password.startsWith('$2')) {
+    const match = await bcrypt.compare(password, user.password)
+    if (!match) {
+      throw new Error('Unauthorized')
+    }
+
+    // rehash password with argon2 and save to database
+    user.password = await argon2.hash(password)
+    await user.save()
+  } else {
+    const match = await argon2.verify(user.password, password)
+    if (!match) {
+      throw new Error('Unauthorized')
+    }
+  }
+  // user is authorized and password is updated
+  ...
+})
+```
+
+And you're done! Your passwords will be gradually updated to use Argon2.

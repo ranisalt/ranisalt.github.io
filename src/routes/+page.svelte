@@ -2,7 +2,6 @@
   import About from "$lib/components/portfolio/About.svelte";
   import Experience from "$lib/components/portfolio/Experience.svelte";
   import Hero from "$lib/components/portfolio/Hero.svelte";
-  import Nav from "$lib/components/portfolio/Nav.svelte";
   import Projects from "$lib/components/portfolio/Projects.svelte";
 </script>
 
@@ -21,11 +20,7 @@
   <meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
-<Nav />
-
-<main class="container mx-auto space-y-24 px-6 not-print:py-24 print:space-y-12">
-  <Hero />
-  <About />
-  <Experience />
-  <Projects />
-</main>
+<Hero />
+<About />
+<Experience />
+<Projects />

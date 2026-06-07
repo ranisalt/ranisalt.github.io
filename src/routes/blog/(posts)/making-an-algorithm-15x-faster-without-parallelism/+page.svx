@@ -1,0 +1,236 @@
+---
+title: Making an algorithm 15x faster without parallelism
+published: 2020-05-15
+updated: 2020-06-01
+---
+
+A couple of years ago, when investigating the performance of a game server, I noticed that a large chunk of the processing time was spent ciphering and deciphering data that was sent to or received by the client. It was especially high on busy servers, as the amount of work would increase linearly with the amount of players, and it was performed in a single thread, the dedicated network dispatcher.
+
+The server in question uses an algorithm called XTEA, a 64-bit block cipher based on a Feistel network. It is very simple and easy to implement, achieving under 10 lines of C++ code:
+
+```cpp
+constexpr uint32_t delta = 0x9E3779B9;
+
+uint64_t encrypt_block(uint64_t data, const array<uint32_t, 4> &key) {
+  unsigned left = data, right = data >> 32;
+  uint32_t sum = 0u;
+  for (auto i = 0u; i < 32u; ++i) {
+    left += ((right << 4 ^ right >> 5) + right) ^ (sum + key[sum & 3]);
+    sum += delta;
+    right += ((left << 4 ^ left >> 5) + left) ^ (sum + key[(sum >> 11) & 3]);
+  }
+  return static_cast<uint64_t>(right) << 32 | left;
+}
+```
+
+Deciphering is symmetrical, being essentially the code above reversed:
+
+```cpp
+auto decrypt_block(uint64_t data, const array<uint32_t, 4> &key) {
+  unsigned left = data, right = data >> 32;
+  uint32_t sum = delta * 32;
+  for (auto i = 32u; i > 0u; --i) {
+    right -= ((left << 4 ^ left >> 5) + left) ^ (sum + key[(sum >> 11) & 3]);
+    sum -= delta;
+    left -= ((right << 4 ^ right >> 5) + right) ^ (sum + key[sum & 3]);
+  }
+  return static_cast<uint64_t>(right) << 32 | left;
+}
+```
+
+I will be running tests on my i7 8809G, using 25 KB of random values and 2500 samples. `-O3` and `-march=native` are imperative to the changes proposed.
+
+### Reference code
+
+The code found on the server to cipher a message uses a `while` loop to check for boundaries:
+
+```cpp
+auto pos = 0ul, len = in.size();
+while (pos < len) {
+  in[pos] = encrypt_block(in[pos]);
+  ++pos;
+}
+```
+
+To set the baseline, it takes an average of 267μs to cipher/decipher a message, with a standard deviation of ~50μs. It accounts for ~87MB/s throughput.
+
+### `while` vs `for` loop
+
+The first idea here will be replacing the `while` loop, I prefer using `for` loop for known boundaries and figured it might help the compiler unroll the loop.
+
+```cpp
+for (auto pos = 0ul, len = in.size(); pos < len; ++pos) {
+  in[pos] = encrypt_block(in[pos]);
+}
+```
+
+I was not hopeful of that, and was right: the `len` value is invariant to the loop, so the compiler emits the same set of instructions.
+
+To make the code a bit more idiomatic C++ and less C, we can use [range-based `for` loop](https://en.cppreference.com/w/cpp/language/range-for) or [`std::transform`](https://en.cppreference.com/w/cpp/algorithm/transform) (if you prefer a functional looking code):
+
+```cpp
+for (auto &block : in) {
+  block = encrypt_block(block);
+}
+```
+
+But hey!
+
+### Parallelism with execution policy
+
+There is something interesting with C++17, a concept named [Execution Policy](https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t). You can tag sequence algorithms to run parallel or unsequenced if possible, using `execution::par` and `execution::unseq` (only in C++20) respectively, and even `execution::par_unseq` for parallel AND unsequenced.
+
+This code uses [electronic codebook mode (ECB)](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation) and application is not sequenced, you can apply the cipher in any order. I wonder what happens if we use `execution::par`...
+
+```cpp
+std::transform(std::execution::par, in.begin(), in.end(), in.begin(), encrypt_block);
+```
+
+That dropped the time from 267μs to 62μs to cipher/decipher a message, with a standard deviation of ~50μs. It accounts for ~334MB/s throughput. The same performance with `execution::par_unseq`, in case you are wondering.
+
+That is a 4.3x improvement, but there's a catch: this high standard deviation is due to the worst cases taking up to 1300μs, 2.5x worse than the worst cases of the reference implementation, which take up to 550μs.
+
+That's a red flag, it's a very inconsistently performing algorithm. If the server is especially busy, it might interfere with other threads and make the server as a whole slower.
+
+Another issue you might consider is linking against a threading library - in my system, it requires the Intel Threading Building Blocks. So let's think of something else.
+
+### Interleaving loops and automatic vectorization
+
+One more trick upon my sleeve. Compilers are extremely advanced pieces of software, performing several optimizations that we most of the time take for granted, but you need to write code it understands and sometimes optimize on your own.
+
+We can interleave the loops, hoisting the Feistel network rounds around the ciphering pass. That's possible because in ECB mode blocks are independent, it does not change the output if you transpose the application of the algorithm.
+
+```cpp
+uint32_t sum = 0u;
+for (auto i = 0u; i < 32u; ++i) {
+  auto next_sum = sum + delta;
+  for (auto &block : in) {
+    uint32_t left = block, right = block >> 32;
+    left += ((right << 4 ^ right >> 5) + right) ^ (sum + key[sum & 3]);
+    right += ((left << 4 ^ left >> 5) + left) ^ (next_sum + key[(next_sum >> 11) & 3]);
+    block = static_cast<uint64_t>(right) << 32 | left;
+  }
+  sum = next_sum;
+}
+```
+
+This code looks, in my opinion, simpler and better to understand. Note I also hoisted `sum += delta`, that's required as we don't have a new sum value on every block. Instead, we use the same variable for all blocks at once.
+
+This takes 55μs to cipher/decipher a message, down from previous 62μs and initial 267μs, with a standard deviation of ~26μs. It accounts for ~384MB/s throughput. That is a further 12% improvement, however, the worst-case takes 200μs, making it much more consistent and faster than the reference implementation on every run, even compared to its best-case run.
+
+Why the improvement? It leverages what is called [automatic vectorization](https://llvm.org/docs/Vectorizers.html): your processor has vector registers, and it allows applying a single instruction (be it a `xor`, an `add` or a `shift`) to several values at the same time.
+
+The compiler will generate code using special registers named `%ymmX` and `%xmmX`, where X denotes register index. `%xmm` registers are 128 bits wide. `%ymm` registers are 256 bits wide and are available if your processor supports AVX (Intel Core except for 1st gen, AMD after Phenom II).
+
+It will generate assembly using instructions such as `vpxor %ymm0, %ymm1, %ymm1` and `vpaddd %ymm2, %ymm1, %ymm1`, instead of the traditional `xor %edx, %eax` and `add %r14d, %eax`. I won't display the assembly code here, it is so heavily optimized you won't really see what's happening.
+
+The beauty here is that the compiler (I am using GCC 10.1.0) is smart enough to figure data might not always be aligned to the wide registers (i.e. input is not always a multiple of 128/256 bits), and it will generate code for that case: it uses wide registers while possible, then resort to a single value at a time.
+
+So far, we have a 4.8x improvement, in line with the change in emitted machine code: the resulting code processes up to 4 blocks at a time (64-bit block in 256-bit registers), the rest can be attributed to loop analysis, as it is easier to unroll the loop and interleave instructions after we extracted an invariant (`next_sum`).
+
+### All `for` variables inside declaration
+
+One last trick that I did not expect would help, I just tried it to save a few lines, is moving all `for`-related variables inside the declaration block:
+
+```cpp
+for (auto i = 0u, sum = 0u, next_sum = sum + delta; i < 32u;
+     ++i, sum = next_sum, next_sum += delta)
+```
+
+It further reduces the average to 51μs, the standard deviation to ~15μs, and the maximum time is now ~140μs. It runs consistently fast, processing 424MB/s. Neat!
+
+In conclusion, the final version of the code is 5.23x faster than the reference implementation, does not impact the rest of the software and is just as short and clear:
+
+```cpp
+constexpr uint32_t delta = 0x9E3779B9;
+
+vector<uint64_t> encrypt(vector<uint64_t> in, const array<uint32_t, 4> &k) {
+  for (auto i = 0u, sum = 0u, next_sum = sum + delta; i < 32u;
+       ++i, sum = next_sum, next_sum += delta) {
+    for (auto &block : in) {
+      uint32_t left = block, right = block >> 32;
+      left += ((right << 4 ^ right >> 5) + right) ^ (sum + key[sum & 3]);
+      right += ((left << 4 ^ left >> 5) + left) ^
+               (next_sum + key[(next_sum >> 11) & 3]);
+      block = static_cast<uint64_t>(right) << 32 | left;
+    }
+  }
+  return in;
+}
+
+vector<uint64_t> decrypt(vector<uint64_t> in, const array<uint32_t, 4> &k) {
+  for (auto i = 0u, sum = delta * 32, next_sum = sum - delta; i < 32u;
+       ++i, sum = next_sum, next_sum -= delta) {
+    for (auto &block : in) {
+      uint32_t left = block, right = block >> 32;
+      right -= ((left << 4 ^ left >> 5) + left) ^ (sum + key[(sum >> 11) & 3]);
+      left -=
+          ((right << 4 ^ right >> 5) + right) ^ (next_sum + key[next_sum & 3]);
+      block = static_cast<uint64_t>(right) << 32 | left;
+    }
+  };
+  return in;
+}
+```
+
+### OpenCL and massive GPU vectorization
+
+After the results for vectorizing the algorithm, I investigated if running in the GPU would scale the same way, considering my GPU (Radeon Vega M GH) has 24 compute units with 4 128-bit registers each, capable of ciphering 192 blocks (1536 bytes) at once! That would make XTEA almost instant.
+
+The game server already used the Boost library, and it has a layer for OpenCL called `boost::compute`. OpenCL uses code units called kernels, itself implementing a subset of C, which makes it very easy to port code to OpenCL, as long as it uses primitives only (there's more to it):
+
+```cpp
+auto encrypt(Data in, const compute::uint4_ &k) {
+  BOOST_COMPUTE_CLOSURE(uint64_t, encrypt_block, (uint64_t data), (k, delta), {
+    unsigned left = data, right = data >> 32;
+    for (int i = 0, sum = 0, next_sum = delta; i < 32;
+         ++i, sum = next_sum, next_sum += delta) {
+      left += ((right << 4 ^ right >> 5) + right) ^ (sum + k[sum & 3]);
+      right += ((left << 4 ^ left >> 5) + left) ^ (next_sum + k[(next_sum >> 11) & 3]);
+    }
+    return ((unsigned long long)right) << 32 | left;
+  });
+
+  compute::vector<uint64_t> out(in.begin(), in.end());
+  compute::transform(out.begin(), out.end(), out.begin(), encrypt_block);
+  compute::copy(out.begin(), out.end(), in.begin());
+  return in;
+}
+
+auto decrypt(Data in, const compute::uint4_ &k) {
+  BOOST_COMPUTE_CLOSURE(uint64_t, decrypt_block, (uint64_t data), (k, delta), {
+    unsigned left = data, right = data >> 32;
+    for (int i = 0, sum = delta * 32, next_sum = sum - delta; i < 32;
+         ++i, sum = next_sum, next_sum -= delta) {
+      right -= ((left << 4 ^ left >> 5) + left) ^ (sum + k[(sum >> 11) & 3]);
+      left -= ((right << 4 ^ right >> 5) + right) ^ (next_sum + k[next_sum & 3]);
+    }
+    return ((unsigned long long)right) << 32 | left;
+  });
+
+  compute::vector<uint64_t> out(in.begin(), in.end());
+  compute::transform(out.begin(), out.end(), out.begin(), decrypt_block);
+  compute::copy(out.begin(), out.end(), in.begin());
+  return in;
+}
+```
+
+Note the key is changed from `array<uint32_t, 4>` to `compute::uint4_t` (a name I find unnecessarily confusing, could be `vec4_uint32`), representing 4 32-bit ints _inside_ the GPU. Since the key is reused, I figured that a real application would precompute it instead of copying it to the GPU every time.
+
+Using OpenCL requires two additional steps: copying the data to the GPU memory, achieved through the `compute::vector` container, and `compute::transform` algorithm; then, it needs to be copied back to main memory. Kudos to Boost for making it so easy!
+
+The extra steps are costly, and this takes 108μs, on average, with a standard deviation of ~36μs and a maximum of ~560μs. It would be a disappointment, but if we ramp up the input size, the GPU massive parallelization really shines!
+
+I set an input length of 500KB instead of the initial 25KB, with the following results:
+
+- The reference implementation takes ~5080μs
+- Vectorized takes ~1170μs
+- OpenCL takes ~403μs
+
+By having a 20x larger input, running on the CPU will also multiply by 20 the run time, but since the GPU is capable of executing the same code on a much wider vector of data, it only requires 2.4x the time and takes the leadership here.
+
+It achieves an _amazing throughput of 1185MB/s_, compared to 95MB/s for the reference implementation and 410MB/s for the CPU-vectorized implementation, for 250KB input. It will peak at 1450MB/s when I use 1572KB input size, as it hits the sweet spot of filling the entire cache (64KB each) for all 24 compute units.
+
+Unfortunately, in the game server use case, about 99% of the inputs will be less than 32 bytes, and it is never larger than 25KB. At that size, the CPU vectorized version is at least 5 times faster than reference. However, for one wanting to cipher massive amounts of bytes, that's a 15x improvement :)
+
+The code for this post and a benchmarking utility is available [on GitHub](https://github.com/ranisalt/xtea-flavors).

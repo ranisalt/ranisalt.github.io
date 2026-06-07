@@ -1,0 +1,112 @@
+.prose {
+  code,
+  pre {
+    /* gruvbox dark */
+    --color-bg0-h: #1d2021;
+    --color-bg4: #7c6f64;
+    --color-fg0: #fbf1c7;
+    --color-fg1: #ebdbb2;
+    --color-fg4: #a89984;
+    --color-red: #fb4934;
+    --color-green: #b8bb26;
+    --color-yellow: #fabd2f;
+    --color-blue: #83a598;
+    --color-purple: #d3869c;
+    --color-aqua: #8ec07c;
+
+    &::selection {
+      color: var(--color-bg4);
+      background: var(--color-fg0);
+    }
+
+    @media (width >= 64rem /* 1024px */) {
+      font-size: inherit;
+    }
+  }
+
+  pre {
+    color: var(--color-fg1);
+    background: var(--color-bg0-h);
+  }
+
+  .token {
+    &.comment,
+    &.prolog,
+    &.cdata {
+      color: var(--color-fg4);
+    }
+
+    &.delimiter,
+    &.boolean,
+    &.keyword,
+    &.selector,
+    &.important,
+    &.atrule {
+      color: var(--color-red);
+    }
+
+    &.operator,
+    &.punctuation,
+    &.attr-name {
+      color: var(--color-fg4);
+    }
+
+    &.tag,
+    &.tag .punctuation,
+    &.doctype,
+    &.builtin {
+      color: var(--color-yellow);
+    }
+
+    &.entity,
+    &.number,
+    &.symbol {
+      color: var(--color-purple);
+    }
+
+    &.property,
+    &.constant,
+    &.variable {
+      color: var(--color-red);
+    }
+
+    &.string,
+    &.char {
+      color: var(--color-green);
+    }
+
+    &.attr-value,
+    &.attr-value .punctuation {
+      color: var(--color-fg4);
+    }
+
+    &.url {
+      color: var(--color-green);
+      text-decoration: underline;
+    }
+
+    &.function {
+      color: var(--color-yellow);
+    }
+
+    &.regex {
+      background: var(--color-green);
+    }
+
+    &.bold {
+      font-weight: bold;
+    }
+
+    &.italic {
+      font-style: italic;
+    }
+
+    &.inserted {
+      background: var(--color-fg4);
+    }
+
+    &.deleted {
+      background: var(--color-red);
+    }
+  }
+}

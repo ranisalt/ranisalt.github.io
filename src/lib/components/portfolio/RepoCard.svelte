@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import ForkIcon from "@iconify-svelte/lucide/git-fork";
   import LinkIcon from "@iconify-svelte/lucide/external-link";
+  import ForkIcon from "@iconify-svelte/lucide/git-fork";
   import StarIcon from "@iconify-svelte/lucide/star";
+  import { onMount } from "svelte";
 
   import { fetchGithubRepo, type GithubRepo } from "$lib/github";
 
