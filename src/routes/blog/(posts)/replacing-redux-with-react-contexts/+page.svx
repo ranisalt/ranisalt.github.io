@@ -1,0 +1,63 @@
+---
+title: Replacing Redux with React Contexts
+published: 2020-07-17
+---
+
+In my current project, we used to use [Redux](https://redux.js.org/) for things like user authentication, language preferences, viewport width, and in general sharing state between components deep down the tree.
+
+Long ago, we started replacing the shared state with [contexts](https://reactjs.org/docs/context.html), as it is easier to provide and manage state localized to just a part of the application. That way, the state does not leak upwards, that is, the login page does not have to have access to the to-do list.
+
+A practical example, only relevant bits:
+
+```ts
+type SetLanguageAction = {
+    type: 'SET_LANGUAGE'
+    language: string
+}
+
+const language = (
+    state: string = initialLanguage,
+    action: SetLanguageAction
+) => {
+    if (action.type !== 'SET_LANGUAGE') {
+        return state
+    }
+
+    localStorage.set('language', action.language)
+    return action.language
+}
+
+// plus boilerplate to attach it to the store
+```
+
+With context, it becomes:
+
+```ts
+import React from 'react'
+
+const Context = React.createContext({} as {
+    language: string
+    setLanguage: React.Dispatch<React.SetStateAction<string>>
+})
+
+const LanguageProvider: React.FC = ({ children }) => {
+    const [language, setLanguage] = useLocalStorage('language', initialLanguage)
+
+    return (
+        <Context.Provider value={{ language, setLanguage }}>
+            {children}
+        </Context.Provider>
+    )
+}
+
+const useLanguage = () => React.useContext(Context)
+// and that's it!
+```
+
+See, the entire behavior is contained in a single file, and not spread across as is common with Redux (you would have `actions.ts`, `reducers.ts` to glue everything).
+
+Additionally, you get full [React hooks](https://reactjs.org/docs/hooks-reference.html) power, as Providers are React components. As an example, I got access to `useLocalStorage` (that's from [react-use](https://github.com/streamich/react-use)) and don't need to handle local storage by hand.
+
+It helps isolate behavior, but it also helps with stricter typing. In user authentication, if the user state was inside the global state, it's type would be `User | null`, as the user data is initialized after data is loaded from the backend.
+
+With a localized context, it can be `User` and we never have to check for nullability or stick `!` after accessing the store, as I can suspend rendering while waiting for data to load (say `if (!user) return null`). It goes really well with [SWR](https://swr.vercel.app/) :)

@@ -19,13 +19,13 @@
 <div class="space-y-6">
   <a
     href={resolve("/blog")}
-    class="block text-sm tracking-wider opacity-50 hover:opacity-100 transition-opacity print:hidden"
+    class="block text-sm tracking-wider opacity-50 transition-opacity hover:opacity-100 print:hidden"
   >
     &larr; Back to all posts
   </a>
 
   <div
-    class="prose prose-invert lg:prose-lg prose-headings:font-serif max-w-5xl mx-auto prose-p:tracking-wider reveal print:prose-hr:hidden"
+    class="reveal mx-auto prose max-w-5xl prose-invert lg:prose-lg prose-headings:font-serif prose-p:tracking-wider print:prose-hr:hidden"
   >
     <h1>{data.title}</h1>
 

@@ -1,0 +1,18 @@
+---
+title: Leverage tree shaking with modular Lodash
+published: 2020-07-17
+---
+
+A follow up to [replacing Redux with React Components](/blog/replacing-redux-with-react-contexts), I'm using the [ES module version of Lodash](https://www.npmjs.com/package/lodash-es) to leverage tree shaking with [Parcel](https://parceljs.org/).
+
+---
+
+[Lodash](https://lodash.com/) is the Swiss army knife of Javascript, but being so useful makes it huge. Analyzing our bundle with [Bundle Buddy](https://bundle-buddy.com/bundle) reveals Lodash is responsible for 70 KB of the bundle. Not the largest chunk, but one we can easily fix: it is not being tree shaken.
+
+[Tree shaking](https://developer.mozilla.org/en-US/docs/Glossary/Tree_shaking) is the concept of removing dead code (that is, code paths that are never accessed) from the final bundle. We use only 8 functions from Lodash, namely: `groupBy`, `keyBy`, `isEqual`, `sortBy`, `times`, `uniq`, `uniqBy` and `xor`. Lodash has hundreds of functions and we don't need everything.
+
+There are several manners of doing that, my chosen one is replacing with [lodash-es](https://www.npmjs.com/package/lodash-es) and leaving dead code elimination to the bundler. You can also use [babel-plugin-lodash](https://github.com/lodash/babel-plugin-lodash) but I didn't find that as easy to set up.
+
+I then ran `sed -i -e "s/'lodash'/'lodash-es'/" src/**.ts*` to replace all imports, after replacing the package in `package.json`.
+
+This reduced the JS bundle by over 50 KB, with `lodash-es` now using only 19 KB!

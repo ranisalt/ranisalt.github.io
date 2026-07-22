@@ -1,0 +1,117 @@
+---
+title: Speed up Next.js build with Typescript and Tailwind CSS
+published: 2021-03-24
+updated: 2021-08-06
+---
+
+In the project I'm currently working with, we have a platform split between a single-page [React](https://reactjs.org/) app and a [Next.js](https://nextjs.org/) SSR website. The development server runs both in the same machine, using containers, but it has only one processor core and 2 GB of RAM.
+
+The React SPA is big, and it takes a while to build. Next.js is notably very slow to build too, even if we only have a handful of pages. I'll document my quest to reduce the unbelievable build times, ranging from at least 5 minutes up to 22 (!) minutes when both are building in parallel.
+
+## Setting the baseline
+
+I will not be running the tests on the dev server, but on my machine. I have a Ryzen 7 4800H with 16 GB of RAM, so the build will not be bottlenecked by hardware as heavily as the aforementioned server.
+
+On this machine, the React SPA takes 84s to build, and Next.js takes 112s. We will reduce the time spent build CSS, and then on building Typescript.
+
+## CSS: `@tailwindcss/jit`
+
+**Update:** You don't need to install a separate package anymore. Just add `mode: 'jit'` to your `tailwind.config.js` file and you are good to go! I will keep reading this section for historic purposes :)
+
+The big issue with Tailwind is that it pulls a huge amount of CSS classes into the parser, in the form of a 3.6 MB CSS file - or 6.0 MB if you enable dark mode. This is heavy on [PostCSS](https://postcss.org/), uses a lot of memory (our server would frequently trigger OOM kills).
+
+Enter [`@tailwindcss/jit`](https://github.com/tailwindlabs/tailwindcss-jit), a drop-in replacement ([though not with 100% feature parity yet](https://github.com/tailwindlabs/tailwindcss-jit#known-limitations)) that collects the classes used by your files and only generates the requested classes.
+
+#### Outdated PostCSS plugins
+
+In this process, we had to get rid of two PostCSS plugins that were not updated to work with PostCSS 8, which is required by `@tailwindcss/jit`: [`precss`](https://github.com/jonathantneal/precss) and [`postcss-rtl`](https://github.com/vkalinichev/postcss-rtl), both of which are unmaintained and won't be updated.
+
+We replaced the former with [`postcss-nesting`](https://github.com/csstools/postcss-nesting) and rewritten the CSS to not use the rest of the features from `precss` - in our case, this was an easy job.
+
+The latter was replaced by [`tailwindcss-rtl`](https://github.com/20lives/tailwindcss-rtl), which is instead a Tailwind plugin. It works great and requires very little effort, you just need to search and replace some non-RTL classes with RTL equivalents - which I expect to be easily swappable once Tailwind supports [CSS Logical Properties](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Logical_Properties).
+
+These are the changes required in `webpack.config.js`:
+
+```diff
+	module: {
+		rules: [
+			...
+			{
+				test: /\.css$/,
+				use: [
+					...,
+					{
+						loader: 'postcss-loader',
+						options: {
+-							postcssOptions: { plugins: ['postcss-import', 'postcss-url', 'tailwindcss', 'precss', 'postcss-rtl'] },
++							postcssOptions: { plugins: ['postcss-import', 'postcss-url', '@tailwindcss/jit'] },
+						},
+					},
+				],
+			},
+			...
+		],
+	},
+	...
+```
+
+Don't forget to update your `tailwind.config.js` file, [the instructions are in the `@tailwindcss/jit` README](https://github.com/tailwindlabs/tailwindcss-jit#getting-started).
+
+#### Results
+
+This has the benefit of not only reducing the load on the parser, but also generating a much smaller CSS file by default, even without minification: a drop from 17.2 MB to 461 KiB before [PurgeCSS](https://purgecss.com/) for the SPA, and from 110 KiB to 1.34 KiB for the Next.js website.
+
+With only that change so far, it reduces the build time to 66s for the SPA and to an amazing 26s for Next.js. I guess that the SPA didn't benefit as much because it uses much more classes - as evidenced by the significantly smaller CSS output.
+
+## Typescript: `esbuild` & `esbuild-loader`
+
+[`esbuild`](https://esbuild.github.io/) is a JS and TS bundler that promises ultra-fast build times. We use [`webpack`](https://webpack.js.org/), and there is support to leverage `esbuild` with [`esbuild-loader`](https://github.com/privatenumber/esbuild-loader).
+
+Using `esbuild-loader` is really simple, we just need to swap `ts-loader` (or `babel-loader`, but I didn't use that) with `esbuild-loader` in your `webpack.config.js`:
+
+```diff
+	...
+	module: {
+		rules: [
+			...
+			{
+				test: /\.tsx?$/,
+				use: [
+					'cache-loader',
+-					'ts-loader',
++					{
++						loader: 'esbuild-loader',
++						options: { loader: 'tsx' },
++					},
+				],
+			},
+			...
+		],
+	},
+	...
+```
+
+Furthermore, since we use [the new JSX transform](https://reactjs.org/blog/2020/09/22/introducing-the-new-jsx-transform.html) and `esbuild` does not support it yet, instead transforming JSX to calls to `React.createElement` which is not available, we need to provide a global `React` variable. This is super simple with `webpack`:
+
+```diff
++const { ProvidePlugin } = require('webpack');
+
+	...
+	plugins: [
+		...
++		new ProvidePlugin({
++			React: 'react',
++		}),
+	],
+	...
+```
+
+The improvement, in real life, is not as huge as advertised in `esbuild`'s website - I guess because it is not pure JS/TS - but still very significant: building the SPA now takes less than 20s. However, we didn't see as much improvement for Next.js, now taking about 22s. It doesn't hurt, so we will keep it 🤷
+
+## Conclusion
+
+We brought down the build time from 84s down to 20s for a React SPA, and from a painful 112s down to 22s for a Next.js SSR website by just swapping the tools used to build. No features were harmed in the process, and we even ended up with less generated CSS.
+
+Additionally, our pipelines used to take at least 5 minutes for a full build and deploy, and now only take around 3 minutes, caching and spinning the containers included, and it does not run out of RAM anymore. Mission accomplished.
+
+On a separate note, we haven't suffered from [this out-of-memory situation](https://github.com/vercel/next.js/issues/15855) since we made the switch, and it seems to be related with excessive amounts of CSS.

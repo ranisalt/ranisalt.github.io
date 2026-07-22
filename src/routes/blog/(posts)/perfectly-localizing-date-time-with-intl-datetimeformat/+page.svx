@@ -1,0 +1,286 @@
+---
+title: Perfectly localizing date & time with Intl.DateTimeFormat
+published: 2020-12-03
+---
+
+The [ECMAScript Internationalization API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl#Locale_identification_and_negotiation) is a namespace that contains several utilities to format values in a language-sensitive way. It solves the issue of outputting dates, numbers, collections, and more built into the browser.
+
+In this post, we will visit these utilities, show how to use them and where they are already available.
+
+# `Intl.DateTimeFormat`
+
+`DateTimeFormat` is a constructor for language-sensitive time formatting. It supports date, time, a combination of both and you can control each part of the result. The syntax to create a new formatter is:
+
+```js
+new Intl.DateTimeFormat([locales[, options]])
+```
+
+If you omit both parameters, it will use the current browser locale and default options for such locale.
+
+Throughout the article, I will use November 5th, 2020 at 01:02:03 AM GMT+1 (`new Date("2020-11-05T00:01:02+01:00")`) as the example date.
+
+## When to use it?
+
+`DateTimeFormat` is useful if you want to format dates in several different places using the same formatting rules, as it allows to concentrate the options in a single place. For example, you can export it in your l10n/i18n context if using React.
+
+For one-off formatting, you may prefer to use [`Date.toLocaleString`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString) and its partners, [`Date.toLocaleDateString`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleDateString) and [`Date.toLocaleTimeString`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleTimeString) to avoid the extra step of instantiating the `DateTimeFormat` object. All of these functions take the same attributes the constructor for `DateTimeFormat` takes: `locale` and `options`. Let's see what those are.
+
+## `locale`
+
+The first parameter, `locales`, is one or a list of possible locales for negotiation. Language negotiation is an intricate subject, and I don't want to dive into it yet, so [check the MDN reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl#Locale_identification_and_negotiation) if you need details.
+
+Here are some examples of how the locale will change the output:
+
+```js
+const dtf = new Intl.DateTimeFormat();
+dtf.format(date);
+//=> "11/5/2020"
+// equivalent to date.toLocaleDateString()
+```
+
+```js
+const dtf = new Intl.DateTimeFormat('pt-BR');
+dtf.format(date);
+//=> "05/11/2020"
+// equivalent to date.toLocaleDateString('pt-BR')
+```
+
+Note the difference: the default, which in my case is `'en-US'`, uses the M/D/Y format. `pt-BR`, however, uses D/M/Y with zero left padded day and month values.
+
+## `options`
+
+By default, `DateTimeFormat` only outputs the date, without the time. We can tweak using the `options` parameter, which may include the following attributes:
+
+### `year`, `month`, `day`
+
+These attributes define how to format each part of the date individually.
+
+For `year`, you can specify either:
+
+- `numeric`, which will display the year in full
+- `2-digit`, which will only display the last 2 digits of the year
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { year: 'numeric' });
+dtf.format(date);
+//=> "2020"
+// equivalent to date.toLocaleDateString('en', { year: 'numeric' })
+// you got it already, right?
+```
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { year: '2-digit' });
+dtf.format(date);
+//=> "20"
+```
+
+`month` can be either `numeric` and `2-digit` (zero-padded if lower than 10), but also has textual representations:
+
+- `long`, which will display the whole month name - `short`, which will display an abbreviation
+- `narrow`, which will display the first letter only (in English)
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { month: 'long' });
+dtf.format(date);
+//=> "November"
+```
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { month: 'short' });
+dtf.format(date);
+//=> "Nov
+```
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { month: 'narrow' });
+dtf.format(date);
+//=> "N"
+```
+
+Note that two months may have the same `narrow` representation in some languages, and it's not guaranteed to be a single character when not in English.
+
+For `day`, there's only `numeric` and `2-digit` (zero-padded).
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { day: 'numeric' });
+dtf.format(date);
+//=> "5"
+```
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { day: '2-digit' });
+dtf.format(date);
+//=> "05"
+```
+
+Note that when you omit the `options` parameter, the default is assumed to be `numeric` for `year`, `month`, and `day`, but if you specify any combination, it will only output the values specified.
+
+Depending on the combination of options, the output will be slightly different. You could expect that using `{ year: 'numeric', month: 'short', day: '2-digit' }` would output `Nov/05/2020` for that same date, however it does not:
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { year: 'numeric', month: 'short', day: '2-digit' });
+dtf.format(date);
+//=> "Nov 05, 2020"
+```
+
+### `era`
+
+If you are displaying dates more than 2000 years ago, you may be interested in using `era`. It can be `long`, `short` and `narrow` similar to how `month` works, and will display the current era (either AD or BC):
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { era: 'long' });
+dtf.format(date);
+//=> "11 5, 2020 Anno Domini"
+```
+```js
+const dtf = new Intl.DateTimeFormat('en', { era: 'short' });
+dtf.format(date);
+//=> "11 5, 2020 AD"
+```
+```js
+const dtf = new Intl.DateTimeFormat('en', { era: 'narrow' });
+dtf.format(date);
+//=> "11 5, 2020 A"
+```
+Note the full date is displayed too, not only the era.
+
+### `weekday`
+
+This attribute controls if the weekday name should be displayed. It can be `long`, `short` and `narrow` similar to how `month` works:
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { weekday: 'long' });
+dtf.format(date);
+//=> "Thursday"
+```
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { weekday: 'short' });
+dtf.format(date);
+//=> "Thu"
+```
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { weekday: 'narrow' });
+dtf.format(date);
+//=> "T"
+```
+
+Note that two weekdays may have the same `narrow` representation in some languages, and it's not guaranteed to be a single character when not in English.
+
+### `hour`, `minute` and `second`
+
+Both these options have only two possibilities, `numeric` and `2-digit`. However, there are two catches.
+
+First, for `minute` and `second`, `numeric` will behave the same as `2-digit` unless only one of three options is specified:
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { minute: 'numeric', second: 'numeric' });
+dtf.format(date);
+//=> "01:02"
+```
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { minute: 'numeric' });
+dtf.format(date);
+//=> "1"
+```
+
+Second, for 12-hour clocks, displaying `hour` will also append `AM`/`PM` to the output:
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { hour: 'numeric', minute: 'numeric', second: 'numeric' });
+dtf.format(date);
+//=> "12:01:02 AM"
+```
+
+You can control AM/PM behavior with the next options.
+
+### `hourCycle` and `h12`
+
+These options control the hour cycle to use, that is if the clock has 24 hours a day or two 12-hour periods and whether it starts at 0 or 1. The defaults are locale-dependent.
+
+| `hourCycle` | output        |
+|-------------|---------------|
+| `'h11'`     | "0:01:02 AM"  |
+| `'h12'`     | "12:01:02 AM" |
+| `'h23'`     | "00:01:02"    |
+| `'h24'`     | "24:01:02"    |
+
+Notes:
+- `hourCycle: 'h12'` is the default for US English
+- `hour: '2-digit'` is forced when using `h23`/`h24`
+
+As for `hour12`, it will toggle between `h11` and `h23`, or between `h12` and `h24` depending on the locale.
+
+| `locale`  | `h12`   | output        |
+|-----------|---------|---------------|
+| `'en'`    | `false` | "12:01:02 AM" |
+| `'pt-BR'` | `true`  | "0:01:02 AM"  |
+
+Notes:
+- US English uses `h12` by default, therefore `hour12: false` sets `hourCycle: 'h24'`
+- BR Portuguese uses `h23` by default, therefore `hour12: true` sets `hourCycle: 'h12'`
+
+### `timeZone`
+
+The `timeZone` attribute is self-explanatory, and defines the time zone to use. The default is to use the system time zone:
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { ... });
+dtf.format(date);
+//=> "12:01:02 AM"
+```
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { ..., timeZone: 'America/Sao_Paulo' });
+dtf.format(date);
+//=> "8:01:02 PM"
+```
+*moving from GMT+1 to GMT-3*
+
+### `timeZoneName`
+
+It is responsible for the representation of the time zone name, and can be `long` or `short`. It can't be used together with `timeStyle`, which we will cover next:
+
+```js
+const dtf = new Intl.DateTimeFormat('en', { timeZoneName: 'long' });
+dtf.format(date);
+//=> "12/5/2020, Coordinated Universal Time"
+```
+```js
+const dtf = new Intl.DateTimeFormat('en', { timeZoneName: 'short' });
+dtf.format(date);
+//=> "12/5/2020, UTC"
+```
+
+## `dateStyle` and `timeStyle`
+
+Now, in case you don't know, default date formats may differ between locales, so you can't rely on setting `year: 'numeric'` for a short date string since some locales would prefer `year: '2-digit'` for short dates, while others simply don't use 2-digit years, never.
+
+For that reason, you can use `dateStyle` and `timeStyle`, which will set reasonable values for all date- and time-related options at once! Both can be `full`, `long`, `medium` and `short` and **can't be mixed with other options, only together**.
+
+Say you want the most verbose representation of a date:
+```js
+const dtf = new Intl.DateTimeFormat('en', { dateStyle: 'full', timeStyle: 'full' });
+dtf.format(date);
+//=> "Saturday, December 5, 2020 at 12:00:00 AM Coordinated Universal Time"
+```
+That is similar to setting every option to `long` or equivalent, with a single option.
+
+Or maybe you want the most concise display for the given locale:
+```js
+const dtf = new Intl.DateTimeFormat('en', { dateStyle: 'short', timeStyle: 'short' });
+dtf.format(date);
+//=> "12/5/20, 12:00 AM"
+```
+```js
+const dtf = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+dtf.format(date);
+//=> "05/12/2020 00:00"
+```
+Note that the style is different, as English uses `{ year: '2-digit', month: 'numeric' }`, has a comma separator, and day period, but Brazilian Portuguese uses `{ year: 'numeric', month: '2-digit' }`, has no comma separator, and 24-hour clock? **This is simply not feasible with plain options**, so `dateStyle` and `timeStyle` are really handy.
+
+But there is a catch. `dateStyle` and `timeStyle` are recent additions, and only available in Firefox >= 79, Chrome >= 76, and are not available in Edge and Safari at the time of writing. [You can polyfill with polyfill.io](https://polyfill.io).
+
+That pretty much sums up what I wanted to show about `Intl.DateTimeFormat`! I will write about `formatToParts` and `formatRange`, and about other utilities inside `Intl` such as `ListFormat` and `RelativeTimeFormat`, follow me to stay tuned!

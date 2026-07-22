@@ -5,7 +5,7 @@
 
   const { data }: PageProps = $props();
 
-  const dtf = new Intl.DateTimeFormat(undefined, { dateStyle: "long" });
+  const dtf = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
 </script>
 
 <svelte:head>
@@ -24,13 +24,13 @@
 
 <div class="divide-y">
   {#each data.posts as { slug, title, published, description } (slug)}
-    <article class="break-inside-avoid space-y-3 py-6 text-sm reveal">
+    <article class="reveal break-inside-avoid space-y-3 py-6 text-sm">
       <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3">
         <a href={resolve(`/blog/${slug}`)} class="font-serif text-xl hover:underline">
           {title}
         </a>
 
-        <time class="text-xs text-muted-foreground uppercase tracking-wider" datetime={published}>
+        <time class="text-xs tracking-wider text-muted-foreground uppercase" datetime={published}>
           {dtf.format(new Date(published))}
         </time>
       </div>

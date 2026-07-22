@@ -20,7 +20,7 @@
 <Nav />
 
 <main
-  class="container mx-auto space-y-12 not-print:lg:space-y-24 px-6 not-print:py-12 not-print:lg:py-24 max-w-5xl tracking-wide"
+  class="container mx-auto max-w-5xl space-y-12 px-6 tracking-wide not-print:py-12 not-print:lg:space-y-24 not-print:lg:py-24"
 >
   {@render children()}
 </main>
