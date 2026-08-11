@@ -6,15 +6,15 @@
 </script>
 
 <svelte:head>
-  <title>Ranieri Althoff — Senior Frontend Engineer</title>
+  <title>Ranieri Althoff — Senior Software Engineer</title>
   <meta
     name="description"
-    content="Senior Frontend Engineer based in Stockholm. 8+ years building scalable web products at Volvo Cars, Klarna and beyond."
+    content="Senior software engineer based in Stockholm. 10+ years building full-stack, backend, and platform systems at Volvo Cars, Klarna and beyond."
   />
-  <meta property="og:title" content="Ranieri Althoff — Senior Frontend Engineer" />
+  <meta property="og:title" content="Ranieri Althoff — Senior Software Engineer" />
   <meta
     property="og:description"
-    content="Senior Frontend Engineer based in Stockholm. 8+ years building scalable web products."
+    content="Senior software engineer based in Stockholm. 10+ years across full-stack, backend, and platform systems."
   />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />

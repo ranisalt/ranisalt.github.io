@@ -1,14 +1,14 @@
 {
   "profile": {
     "name": "Ranieri Althoff",
-    "role": "Senior Frontend Engineer",
-    "tagline": "Software Engineer with 8+ years of experience in scalable web development, secure systems, and cross-functional collaboration. Passionate about impactful software and open source.",
+    "role": "Senior Software Engineer",
+    "tagline": "Senior software engineer with 10+ years of experience across full-stack web development, backend and platform systems, secure software, and cross-functional collaboration. Passionate about impactful software and open source.",
     "location": "Stockholm, Sweden",
     "email": "hi@rsa.sh",
     "github": "ranisalt",
     "linkedin": "ranisalt"
   },
-  "about": "I'm a software engineer based in Stockholm, currently building internationalized experiences at Volvo Cars. I care about thoughtful interfaces, healthy developer experience, and software that respects the people using it. My background spans front-end product work, low-level systems, and applied cryptography.",
+  "about": "I'm a software engineer based in Stockholm, currently building internationalized experiences at Volvo Cars. I care about thoughtful interfaces, healthy developer experience, and software that respects the people using it. My background spans front-end product work, backend and platform systems (Go, Node.js), low-level systems in C++, and applied cryptography.",
   "experiences": [
     {
       "company": "Volvo Cars",
@@ -85,9 +85,9 @@
     }
   ],
   "skills": {
-    "Languages": ["TypeScript", "JavaScript", "C++", "Python"],
+    "Languages": ["TypeScript", "JavaScript", "C++", "Python", "Go"],
     "Frontend & mobile": ["React (Next.js)", "Svelte (SvelteKit)", "React Native"],
-    "Backend": ["Express", "FastAPI", "REST", "GraphQL"],
+    "Backend": ["Go", "Node.js", "Express", "FastAPI", "REST", "GraphQL"],
     "Tooling & build systems": ["Vite", "Webpack", "CMake", "Yarn", "pnpm"],
     "DevOps & infrastructure": ["Docker", "GitHub Actions (CI/CD)", "Linux (systemd)", "Flatpak"]
   },
