@@ -1,6 +1,6 @@
 <script lang="ts">
-  import SectionLabel from "$lib/components/portfolio/SectionLabel.svelte";
-  import { education, experiences } from "$lib/portfolio-data.json" with { type: "json" };
+  import SectionLabel from "#lib/components/portfolio/SectionLabel.svelte";
+  import { education, experiences } from "#lib/portfolio-data.json" with { type: "json" };
 </script>
 
 <section id="work" class="space-y-12 *:break-inside-avoid">

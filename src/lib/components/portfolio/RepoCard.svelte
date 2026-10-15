@@ -4,7 +4,7 @@
   import StarIcon from "@iconify-svelte/lucide/star";
   import { onMount } from "svelte";
 
-  import { fetchGithubRepo, type GithubRepo } from "$lib/github";
+  import { fetchGithubRepo, type GithubRepo } from "#lib/github.js";
 
   type Props = {
     slug: string;

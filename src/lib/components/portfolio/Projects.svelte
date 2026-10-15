@@ -1,7 +1,7 @@
 <script lang="ts">
-  import RepoCard from "$lib/components/portfolio/RepoCard.svelte";
-  import SectionLabel from "$lib/components/portfolio/SectionLabel.svelte";
-  import { githubRepos } from "$lib/portfolio-data.json" with { type: "json" };
+  import RepoCard from "#lib/components/portfolio/RepoCard.svelte";
+  import SectionLabel from "#lib/components/portfolio/SectionLabel.svelte";
+  import { githubRepos } from "#lib/portfolio-data.json" with { type: "json" };
 </script>
 
 <section id="projects" class="break-inside-avoid space-y-6">

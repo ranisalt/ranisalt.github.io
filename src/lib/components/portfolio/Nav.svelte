@@ -1,12 +1,12 @@
 <script lang="ts">
+  import { profile } from "#lib/portfolio-data.json" with { type: "json" };
   import { resolve } from "$app/paths";
-  import { profile } from "$lib/portfolio-data.json" with { type: "json" };
 
   const links = [
-    { label: "About", href: resolve("/#about") },
-    { label: "Work", href: resolve("/#work") },
-    { label: "Projects", href: resolve("/#projects") },
-    { label: "Writing", href: resolve("/blog") },
+    { label: "About", href: resolve("#about") },
+    { label: "Work", href: resolve("#work") },
+    { label: "Projects", href: resolve("#projects") },
+    { label: "Writing", href: resolve("blog") },
   ];
 </script>
 

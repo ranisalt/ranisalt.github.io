@@ -14,7 +14,9 @@
     name="description"
     content="Read my latest thoughts on frontend development, web performance, and more."
   />
+
   <meta property="og:title" content="Blog — Ranieri Althoff" />
+
   <meta
     property="og:description"
     content="Read my latest thoughts on frontend development, web performance, and more."
@@ -26,9 +28,7 @@
   {#each data.posts as { slug, title, published, description } (slug)}
     <article class="reveal break-inside-avoid space-y-3 py-6 text-sm">
       <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3">
-        <a href={resolve(`/blog/${slug}`)} class="font-serif text-xl hover:underline">
-          {title}
-        </a>
+        <a href={resolve(`blog/${slug}`)} class="font-serif text-xl hover:underline">{title}</a>
 
         <time class="text-xs tracking-wider text-muted-foreground uppercase" datetime={published}>
           {dtf.format(new Date(published))}

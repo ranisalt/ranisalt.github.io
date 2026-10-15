@@ -1,8 +1,8 @@
 <script lang="ts">
-  import About from "$lib/components/portfolio/About.svelte";
-  import Experience from "$lib/components/portfolio/Experience.svelte";
-  import Hero from "$lib/components/portfolio/Hero.svelte";
-  import Projects from "$lib/components/portfolio/Projects.svelte";
+  import About from "#lib/components/portfolio/About.svelte";
+  import Experience from "#lib/components/portfolio/Experience.svelte";
+  import Hero from "#lib/components/portfolio/Hero.svelte";
+  import Projects from "#lib/components/portfolio/Projects.svelte";
 </script>
 
 <svelte:head>

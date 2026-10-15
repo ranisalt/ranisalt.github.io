@@ -1,8 +1,8 @@
 <script lang="ts">
   import "./layout.css";
 
-  import favicon from "$lib/assets/favicon.svg";
-  import Nav from "$lib/components/portfolio/Nav.svelte";
+  import favicon from "#lib/assets/favicon.svg";
+  import Nav from "#lib/components/portfolio/Nav.svelte";
 
   const { children } = $props();
 </script>

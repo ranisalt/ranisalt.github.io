@@ -2,7 +2,7 @@ import * as path from "node:path";
 
 import type { SvelteComponent } from "svelte";
 
-import type { Pathname } from "$app/types";
+import type { Path } from "$app/types";
 
 import type { PageServerLoad } from "./$types";
 
@@ -19,12 +19,12 @@ export const load: PageServerLoad = async () => {
       published?: string;
       updated?: string;
     };
-  }>("$posts/**/*.svx");
+  }>("./(posts)/*/*.svx");
 
   const posts = await Promise.all(
     Object.entries(modules).map(async ([filename, resolver]) => {
       const { dir } = path.parse(filename);
-      const slug = path.basename(dir) as WithoutPrefix<"/blog/", Pathname & `/blog/${string}`>;
+      const slug = path.basename(dir) as WithoutPrefix<"blog/", Path & `blog/${string}`>;
 
       const { metadata } = await resolver();
       return { slug, ...metadata };

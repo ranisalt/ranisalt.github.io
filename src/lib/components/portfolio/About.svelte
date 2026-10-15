@@ -1,6 +1,6 @@
 <script lang="ts">
-  import SectionLabel from "$lib/components/portfolio/SectionLabel.svelte";
-  import { about, languages, skills } from "$lib/portfolio-data.json" with { type: "json" };
+  import SectionLabel from "#lib/components/portfolio/SectionLabel.svelte";
+  import { about, languages, skills } from "#lib/portfolio-data.json" with { type: "json" };
 
   const skillGroups = Object.entries(skills);
 </script>

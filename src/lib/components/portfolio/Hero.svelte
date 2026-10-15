@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { profile } from "$lib/portfolio-data.json" with { type: "json" };
+  import { profile } from "#lib/portfolio-data.json" with { type: "json" };
 
   const channels: { label: string; href: string; value?: string }[] = [
     { label: "GitHub", href: `https://github.com/${profile.github}` },
