@@ -96,5 +96,5 @@
     { "name": "English", "level": "Fluent" },
     { "name": "Spanish", "level": "Elementary" }
   ],
-  "githubRepos": ["ranisalt/node-argon2"]
+  "githubRepos": ["ranisalt/boletix", "ranisalt/node-argon2"]
 }

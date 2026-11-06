@@ -55,7 +55,19 @@
             —
           </p>
         {:then data}
-          <p class="text-sm text-muted-foreground">{data.language}</p>
+          <p class="text-sm text-muted-foreground">
+            {data.language}
+            {#if data.homepage}
+              · <a
+                href={data.homepage}
+                rel="external noreferrer"
+                target="_blank"
+                class="underline-offset-2 hover:text-primary hover:underline"
+              >
+                {data.homepage.replace(/^https?:\/\//, "")}
+              </a>
+            {/if}
+          </p>
         {:catch}
           <p class="text-sm text-muted-foreground">Couldn't load repo info.</p>
         {/await}
