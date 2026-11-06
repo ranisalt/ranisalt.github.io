@@ -16,30 +16,30 @@
   "dependencies": {
     "@iconify-svelte/lucide": "^1.0.66",
     "@tailwindcss/typography": "^0.5.20",
-    "@tailwindcss/vite": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.4",
     "mdsvex": "^0.12.8",
-    "svelte": "5.57.2",
-    "tailwindcss": "^4.3.3",
+    "svelte": "5.57.3",
+    "tailwindcss": "^4.3.4",
     "typescript": "^6.0.3",
-    "vite": "^8.3.4"
+    "vite": "^8.3.6"
   },
   "devDependencies": {
     "@eslint/compat": "^2.1.1",
     "@eslint/js": "^10.0.1",
-    "@sveltejs/adapter-static": "^4.0.0",
-    "@sveltejs/kit": "^3.1.0",
+    "@sveltejs/adapter-static": "^4.0.1",
+    "@sveltejs/kit": "^3.1.1",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
-    "@types/node": "^26.6.5",
-    "eslint": "^10.12.0",
+    "@types/node": "^26.6.6",
+    "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-simple-import-sort": "^14.0.0",
-    "eslint-plugin-svelte": "^3.23.1",
-    "globals": "^17.13.0",
+    "eslint-plugin-svelte": "^3.24.0",
+    "globals": "^17.14.0",
     "prettier": "^3.9.10",
     "prettier-plugin-svelte": "^4.1.1",
     "prettier-plugin-tailwindcss": "^0.8.1",
-    "svelte-check": "^4.7.6",
-    "typescript-eslint": "^8.71.2"
+    "svelte-check": "^4.7.8",
+    "typescript-eslint": "^8.72.1"
   },
   "imports": {
     "#lib/*": "./src/lib/*"
